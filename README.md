@@ -6,10 +6,11 @@ AI Engineering Bootcamp · Module 1 class materials
 
 | File | What it covers |
 |---|---|
-| `01_first_llm_call.ipynb` | First call, tokens and latency, messages, temperature, Gemini and Groq, prompts |
-| `02_reliability_and_logging.ipynb` | Retries with back-off, safe failure demo, logging to JSON Lines |
-| `03_classwork_ask_tool.ipynb` | Classwork: build the "Ask" tool step by step |
-| `04_assignment_model_comparison.ipynb` | Assignment: compare two models on 5 questions |
+| 01_first_llm_call.ipynb | First call, tokens and latency, messages, temperature, Gemini and Groq, prompts |
+| 02_reliability_and_logging.ipynb | Retries with back-off, safe failure demo, logging to JSON Lines |
+| 03_classwork_ask_tool.ipynb | Classwork: build the "Ask" tool step by step (all tasks completed) |
+| 04_assignment_model_comparison.ipynb | Assignment: compare two models on 5 questions |
+| ask.py | The finished "Ask" tool from notebook 03 (supports `--provider groq`) |
 
 ## Setup (VS Code)
 
@@ -19,24 +20,24 @@ AI Engineering Bootcamp · Module 1 class materials
    - Windows: `python -m venv .venv` then `.venv\Scripts\activate`
    - macOS / Linux: `python3 -m venv .venv` then `source .venv/bin/activate`
 4. Install packages: `pip install -r requirements.txt`
-5. Copy `.env.example` to `.env` and add your API keys:
-   - Gemini: https://aistudio.google.com
-   - Groq: https://console.groq.com
-6. Open `01_first_llm_call.ipynb`, click **Select Kernel** (top right), and choose `.venv`.
+5. Copy `.env.example` to `.env` and paste your keys:
+   - Gemini: https://aistudio.google.com (Get API key)
+   - Groq: https://console.groq.com (API Keys)
+6. Open `01_first_llm_call.ipynb`, click **Select Kernel** (top right) and choose `.venv`.
 7. Run cells with **Shift + Enter**.
 
 ## Rules
 
-- Never commit `.env` or share your API keys.
+- Never commit `.env` or share your keys.
 - Free-tier prompts may be used by providers to improve their models. Don't send personal or confidential data.
 
 ---
 
 ## Assignment 2 · Model Comparison Report
 
-**Topic:** Python programming fundamentals  
-**Models:** Gemini (`GEMINI_MODEL` from `.env`) vs Groq (`GROQ_MODEL` from `.env`), temperature 0.2.  
-**Method:** Five test questions were run against each model. Responses were assessed against the answer key in `04_assignment_model_comparison.ipynb`. Full results, including answers, token counts, latency, errors, and ratings, are recorded in [`results.csv`](results.csv).
+**Topic:** Python programming fundamentals
+**Models:** Gemini (`gemini-3.8-flash`) vs Groq (`openai/gpt-oss-20b`), temperature 0.2
+**Method:** 5 test questions, each with one objectively correct answer (answer key in the notebook). Every answer rated *correct*, *partly correct* or *wrong* against the key. Full data in [`results.csv`](results.csv).
 
 ### Test questions
 
@@ -48,17 +49,28 @@ AI Engineering Bootcamp · Module 1 class materials
 
 ### Results
 
-| Metric | Gemini (`gemini-3.8-flash`) | Groq (`openai/gpt-oss-20b`) |
-|---|---:|---:|
-| Correct answers | 0 | 5 |
-| Partly correct answers | 0 | 0 |
-| Wrong / failed answers | 5 | 0 |
-| API errors | 5 | 0 |
-| Average latency (s) | N/A | 0.86 |
-| Average output tokens | N/A | 121 |
+| Metric | Gemini (gemini-3.8-flash) | Groq (openai/gpt-oss-20b) |
+|---|---|---|
+| Correct | 4 | 5 |
+| Partly correct | 0 | 0 |
+| Wrong | 1 | 0 |
+| Errors | 1 | 0 |
+| Avg latency (s) | 12.71 | 0.53 |
+| Avg tokens out | 56 | 128 |
 
-**Important limitation:** All five Gemini requests failed after retries with timeout/rate-limit errors, so Gemini did not return answers that could be evaluated. The five Gemini rows are marked `wrong` for the assignment's rating summary because no usable answer was returned; this should not be interpreted as evidence that Gemini's answers were factually incorrect. Gemini's latency and output-token averages are unavailable. Groq answered all five questions correctly; its average latency was approximately 0.86 seconds and average output length was approximately 121 tokens.
+*Gemini's "wrong" is an error row: Q4 hit the free-tier rate limit, all 3 retries
+(2s, 4s, 8s back-off) failed, and no answer was produced — recorded by the
+notebook's error handling. Every answer Gemini did return was correct.*
 
 ### Which model would I choose, and why?
 
-Based on the results collected in this run, I would choose Groq for this Python fundamentals task because it successfully answered all five questions correctly. Its average latency was about 0.86 seconds, and its responses used an average of 121 output tokens. Gemini's requests all failed with timeout or rate-limit errors, so I could not compare its answer quality, speed, or verbosity fairly. I would retest Gemini after resolving the API errors before making a final quality comparison between the two models.
+I would choose **Groq**. Both models answered every question they completed
+correctly (Groq 5/5, Gemini 4/4), so on pure answer quality they tie — but Groq
+delivered those answers in an average of 0.53s versus Gemini's 12.71s, roughly
+24× faster, and it completed all 5 calls with zero errors while Gemini's 4th
+call was lost to rate limiting even after retries. Groq's answers are more
+verbose (128 vs 56 average tokens out), but for a study-assistant use case that
+extra explanation is useful rather than harmful. Speed and reliability win here:
+for this topic, **Groq** is the better choice; I'd only reconsider Gemini if
+answer depth on harder questions mattered more than latency, or on a paid tier
+where its rate limits wouldn't bite.
